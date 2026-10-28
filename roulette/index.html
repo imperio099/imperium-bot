@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IMPERIUM ROULETTE</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:18px;background:#100d0a;color:#f5d58a;font-family:Arial,sans-serif;text-align:center}
+.panel{max-width:480px;margin:auto;border:1px solid #8e6a2b;border-radius:16px;padding:18px;background:#1a1510}
+h1{color:#e9bd58;letter-spacing:3px;text-shadow:0 0 15px #8c5a12}
+.balance{font-size:20px;margin:12px}
+.wheel{width:240px;height:240px;border:8px solid #b58b3a;border-radius:50%;margin:20px auto;display:grid;place-items:center;background:conic-gradient(#16834a 0 9.73deg,#b51f24 9.73deg 19.46deg,#111 19.46deg 29.19deg,#b51f24 29.19deg 38.92deg,#111 38.92deg 48.65deg,#b51f24 48.65deg 58.38deg,#111 58.38deg 68.11deg,#b51f24 68.11deg 77.84deg,#111 77.84deg 87.57deg,#b51f24 87.57deg 97.3deg,#111 97.3deg 107.03deg,#b51f24 107.03deg 116.76deg,#111 116.76deg 126.49deg,#b51f24 126.49deg 136.22deg,#111 136.22deg 145.95deg,#b51f24 145.95deg 155.68deg,#111 155.68deg 165.41deg,#b51f24 165.41deg 175.14deg,#111 175.14deg 184.87deg,#b51f24 184.87deg 194.6deg,#111 194.6deg 204.33deg,#b51f24 204.33deg 214.06deg,#111 214.06deg 223.79deg,#b51f24 223.79deg 233.52deg,#111 233.52deg 243.25deg,#b51f24 243.25deg 252.98deg,#111 252.98deg 262.71deg,#b51f24 262.71deg 272.44deg,#111 272.44deg 282.17deg,#b51f24 282.17deg 291.9deg,#111 291.9deg 301.63deg,#b51f24 301.63deg 311.36deg,#111 311.36deg 321.09deg,#b51f24 321.09deg 330.82deg,#111 330.82deg 340.55deg,#b51f24 340.55deg 350.28deg,#111 350.28deg 360deg)}
+.wheel span{width:46%;height:46%;border-radius:50%;background:#16110b;border:3px solid #d9b45b;display:grid;place-items:center;font-weight:bold;font-size:12px}
+button,input{font-size:16px;border-radius:8px;padding:11px;margin:4px;border:1px solid #bd9345}
+button{background:#b78a30;color:#170f06;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.5}
+input{background:#0f0d0a;color:#fff;width:120px}
+.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin:12px 0}
+.num{padding:10px 2px}
+.red{background:#9c2025;color:white}.black{background:#292929;color:white}.green{background:#176d40;color:white}
+#result{font-size:19px;margin:15px;min-height:24px}
+.note{color:#c9b98d;font-size:12px;line-height:1.4}
+</style>
+</head>
+<body>
+<div class="panel">
+<h1>♛ IMPERIUM ♛</h1>
+<div>РУЛЕТКА ИМПЕРИИ</div>
+<div class="balance">Баланс: <span id="balance">1000</span> 🪙</div>
+<div class="wheel" id="wheel"><span>IMPERIUM</span></div>
+<div id="result">Сделай ставку</div>
+<div><label for="stake">Ставка:</label> <input id="stake" type="number" min="1" value="50"></div>
+<div>
+<button onclick="choose('red')">🔴 Красное ×2</button>
+<button onclick="choose('black')">⚫ Чёрное ×2</button>
+<button onclick="choose('green')">🟢 Зеро ×14</button>
+</div>
+<div class="grid" id="numbers"></div>
+<div><button onclick="clearBet()">Очистить</button><button id="go" onclick="spin()">ГО! 🎰</button></div>
+<p class="note">Демо-версия: баланс хранится только в браузере и не связан с Telegram-ботом.</p>
+</div>
+<script>
+let balance=1000,bets=[],spinning=false;
+const reds=[1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
+const numbers=document.getElementById('numbers');
+for(let i=0;i<=36;i++){const el=document.createElement('button');el.className='num '+(i===0?'green':reds.includes(i)?'red':'black');el.textContent=i;el.onclick=()=>choose(i);numbers.appendChild(el);}
+function choose(target){
+ if(spinning)return;
+ const stake=Math.floor(Number(document.getElementById('stake').value));
+ if(!Number.isFinite(stake)||stake<1){alert('Введи ставку от 1 монеты');return}
+ if(stake>balance){alert('Недостаточно монет');return}
+ bets.push({target,stake});balance-=stake;update();
+ document.getElementById('result').textContent='Ставка добавлена';
+}
+function clearBet(){if(spinning)return;balance+=bets.reduce((s,b)=>s+b.stake,0);bets=[];update();document.getElementById('result').textContent='Ставки очищены';}
+function update(){document.getElementById('balance').textContent=balance;}
+function spin(){
+ if(spinning)return;if(!bets.length){alert('Сначала сделай ставку');return}
+ spinning=true;document.getElementById('go').disabled=true;document.getElementById('result').textContent='Шарик вращается...';
+ const wheel=document.getElementById('wheel');wheel.style.transition='transform 4s cubic-bezier(.1,.7,.2,1)';wheel.style.transform='rotate('+(1440+Math.random()*1440)+'deg)';
+ setTimeout(()=>{
+  const n=Math.floor(Math.random()*37);let winnings=0;
+  for(const b of bets){if(typeof b.target==='number'&&b.target===n)winnings+=b.stake*36;else if(b.target==='green'&&n===0)winnings+=b.stake*14;else if(b.target==='red'&&reds.includes(n))winnings+=b.stake*2;else if(b.target==='black'&&n!==0&&!reds.includes(n))winnings+=b.stake*2;}
+  balance+=winnings;update();document.getElementById('result').textContent='Выпало '+n+' · '+(n===0?'🟢':reds.includes(n)?'🔴':'⚫')+' · Выплата: '+winnings+' 🪙';
+  bets=[];spinning=false;document.getElementById('go').disabled=false;wheel.style.transition='none';wheel.style.transform='rotate(0deg)';
+ },4100);
+}
+</script>
+</body>
+</html>
